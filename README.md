@@ -112,4 +112,4 @@ git submodule update --remote --merge
 
 ## License
 
-Add your preferred license in this repository if you plan to open-source it.
+This project is licensed under the MIT License. See LICENSE for details.

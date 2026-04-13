@@ -1,6 +1,0 @@
-[submodule "recipe-client-dev"]
-	path = recipe-client-dev
-	url = https://github.com/kundan1729/recipe-client-dev.git
-[submodule "recipe-server-dev"]
-	path = recipe-server-dev
-	url = https://github.com/kundan1729/recipe-server-dev.git

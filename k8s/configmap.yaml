@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mern-app-config
+  namespace: mern-app
+data:
+  BACKEND_URL: "http://backend-service:5000"

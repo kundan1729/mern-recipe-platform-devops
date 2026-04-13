@@ -1,0 +1,48 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backend-alert-rules
+  namespace: observability
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: backend-k8s-health
+      rules:
+        - alert: BackendPodsUnavailable
+          expr: kube_deployment_status_replicas_unavailable{namespace="mern-app",deployment="backend-deployment"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend deployment has unavailable replicas
+            description: One or more backend pods are unavailable for at least 5 minutes.
+
+        - alert: BackendHPAAtMaxReplicas
+          expr: kube_horizontalpodautoscaler_status_current_replicas{namespace="mern-app",horizontalpodautoscaler="backend-hpa"} >= kube_horizontalpodautoscaler_spec_max_replicas{namespace="mern-app",horizontalpodautoscaler="backend-hpa"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Backend HPA has reached maximum replicas
+            description: Backend HPA is pinned at max replicas for over 10 minutes, consider scaling tuning.
+
+    - name: backend-app-metrics
+      rules:
+        - alert: BackendMetricsTargetDown
+          expr: up{namespace="mern-app",job="backend-service"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend metrics target is down
+            description: Prometheus cannot scrape one or more backend /metrics targets for at least 2 minutes.
+
+        - alert: BackendHighProcessMemory
+          expr: process_resident_memory_bytes{namespace="mern-app",job="backend-service"} > 4e+08
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Backend process memory is high
+            description: Backend process RSS is above 400MB for at least 10 minutes.

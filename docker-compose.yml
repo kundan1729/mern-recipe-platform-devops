@@ -1,0 +1,22 @@
+services:
+  backend:
+    # Build the backend image from the backend project folder
+    build:
+      context: ./recipe-server-dev
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    # Load backend runtime environment variables (Mongo URI, JWT secret, etc.)
+    env_file:
+      - ./recipe-server-dev/.env
+
+  frontend:
+    # Build the frontend image from the frontend project folder
+    build:
+      context: ./recipe-client-dev
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    # Ensure backend starts before frontend proxy traffic begins
+    depends_on:
+      - backend

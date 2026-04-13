@@ -1,0 +1,37 @@
+# k8s/frontend/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: mern-app
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: asia-south1-docker.pkg.dev/project-9deab9ff-1a87-40c8-ae3/my-repo/frontend:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mern-app-config
+                  key: BACKEND_URL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"

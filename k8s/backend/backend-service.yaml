@@ -1,0 +1,18 @@
+# k8s/backend/backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: mern-app
+  labels:
+    app: backend
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000

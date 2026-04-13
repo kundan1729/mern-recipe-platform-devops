@@ -1,0 +1,31 @@
+# Secrets and local env
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+*.kubeconfig
+
+# Cloud and auth artifacts
+gcp-sa-key.json
+sa-key.json
+
+# Node
+**/node_modules/
+**/dist/
+**/build/
+**/.npm/
+**/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

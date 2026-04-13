@@ -155,6 +155,23 @@ function Home() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Enter your ingredients and let AI create a delicious recipe for you
           </p>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="mt-6 mx-auto max-w-4xl bg-white/80 backdrop-blur border border-emerald-100 rounded-2xl px-4 py-4 shadow-sm"
+          >
+            <p className="text-sm font-semibold text-emerald-700 tracking-wide uppercase">
+              DevOps Delivery Highlights
+            </p>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm">
+              <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">GitHub Actions CI/CD</span>
+              <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 font-medium">Docker Build and Push</span>
+              <span className="px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 font-medium">Kubernetes on GKE</span>
+              <span className="px-3 py-1 rounded-full bg-lime-100 text-lime-800 font-medium">OIDC Secure Deploy</span>
+              <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-medium">Ingress and Autoscaling</span>
+            </div>
+          </motion.div>
           {user && (
             <p className="text-sm text-emerald-600 mt-2">
               Welcome, {user.user_metadata?.full_name || user.email}! 👋

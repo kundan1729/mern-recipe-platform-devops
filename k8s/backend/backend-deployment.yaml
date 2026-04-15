@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: asia-south1-docker.pkg.dev/project-9deab9ff-1a87-40c8-ae3/my-repo/backend:v1
+          image: asia-south1-docker.pkg.dev/project-9deab9ff-1a87-40c8-ae3/my-repo/backend:v2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000

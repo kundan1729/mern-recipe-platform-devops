@@ -91,7 +91,7 @@ const CreatorFooter = () => {
           {/* Copyright */}
           <div className="footer-meta">
             <p className="copyright">
-              © {new Date().getFullYear()} Kundan Kumar. All rights reserved.
+              © {new Date().getFullYear()} Kundan Kumar Singh. All rights reserved.
             </p>
             <p className="tagline">Crafting exceptional digital experiences.</p>
           </div>

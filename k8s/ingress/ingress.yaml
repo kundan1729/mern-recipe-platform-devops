@@ -1,4 +1,4 @@
-# k8s/ingress/ingress.yaml
+ # k8s/ingress/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,6 +7,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.global-static-ip-name: "mern-app-ingress-ip"
+    networking.gke.io/managed-certificates: "mern-app-managed-cert"
 spec:
   ingressClassName: gce
   rules:
@@ -27,7 +28,8 @@ spec:
                 name: frontend-service
                 port:
                   number: 80
-    - http:
+    - host: www.itskundan.live
+      http:
         paths:
           - path: /api
             pathType: Prefix

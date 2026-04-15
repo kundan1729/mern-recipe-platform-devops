@@ -54,6 +54,7 @@ kubectl apply -f k8s/frontend/frontend-service.yaml
 kubectl apply -f k8s/backend/backend-deployment.yaml
 kubectl apply -f k8s/frontend/frontend-deployment.yaml
 kubectl apply -f k8s/autoscaling/hpa.yaml
+kubectl apply -f k8s/ingress/managed-certificate.yaml
 kubectl apply -f k8s/ingress/ingress.yaml
 ```
 

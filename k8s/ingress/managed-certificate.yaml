@@ -1,0 +1,9 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: mern-app-managed-cert
+  namespace: mern-app
+spec:
+  domains:
+    - itskundan.live
+    - www.itskundan.live

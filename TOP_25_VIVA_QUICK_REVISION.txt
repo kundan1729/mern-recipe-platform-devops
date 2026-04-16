@@ -1,0 +1,84 @@
+TOP 25 VIVA QUICK REVISION
+Project: mern-recipe-platform-devops
+Date: 15-Apr-2026
+
+Format: High-probability interview questions with short direct answers.
+
+1) Q: What is the project architecture?
+A: Containerized MERN app with separate frontend and backend, deployed on GKE using Kubernetes manifests.
+
+2) Q: What is the role of CI in your project?
+A: CI validates code quality using lint/typecheck and dependency checks before deployment.
+
+3) Q: What is the role of CD in your project?
+A: CD builds Docker images, pushes them to Artifact Registry, and deploys updated images to GKE.
+
+4) Q: What triggers your pipeline?
+A: Push to main, PR to main, and manual workflow_dispatch.
+
+5) Q: Why does PR not deploy?
+A: PR is for validation only to prevent accidental environment changes before merge approval.
+
+6) Q: Why do you tag images with commit SHA?
+A: For exact traceability and easy rollback to a known code version.
+
+7) Q: Where are container images stored?
+A: Google Artifact Registry.
+
+8) Q: How does the workflow authenticate to GCP?
+A: Through OIDC Workload Identity Federation using short-lived credentials.
+
+9) Q: Why OIDC is better than static JSON key?
+A: No long-lived credential leakage risk and better security posture.
+
+10) Q: Which IAM approach is used?
+A: Least-privilege service account roles for registry push and GKE deployment actions.
+
+11) Q: What does kubectl apply do in pipeline?
+A: Applies Kubernetes manifests for namespace, configmap, services, deployments, HPA, and ingress.
+
+12) Q: Why use kubectl set image?
+A: Updates deployment to new image tag without editing manifests manually every release.
+
+13) Q: Why rollout status check is important?
+A: Confirms pods are healthy and deployment succeeded before pipeline is marked successful.
+
+14) Q: What is Kubernetes namespace used for?
+A: Logical isolation and cleaner management of app resources.
+
+15) Q: ConfigMap vs Secret?
+A: ConfigMap stores non-sensitive config; Secret stores sensitive values like DB URI and keys.
+
+16) Q: How are app secrets injected?
+A: Backend deployment pulls them from Kubernetes Secret at runtime.
+
+17) Q: What does Ingress do here?
+A: Routes /api to backend service and / to frontend service.
+
+18) Q: Why reserve a static external IP?
+A: Keeps public endpoint stable across redeployments and load balancer changes.
+
+19) Q: How DNS is configured conceptually?
+A: Domain A records point to reserved ingress static IP.
+
+20) Q: Why managed certificate is used?
+A: Automatic TLS certificate provisioning and renewal for HTTPS.
+
+21) Q: Why readiness probe matters?
+A: Sends traffic only to pods ready to serve requests.
+
+22) Q: Why liveness probe matters?
+A: Detects stuck containers and restarts them automatically.
+
+23) Q: Why use HPA?
+A: Auto-scales pods during high traffic and reduces resources when load is low.
+
+24) Q: How is monitoring handled?
+A: Prometheus metrics/alerts with Alertmanager routing to channels like Slack/email.
+
+25) Q: If deployment fails, what do you check first?
+A: GitHub Actions logs, rollout status, pod events/describe output, and container logs.
+
+
+30-SECOND FINAL ANSWER
+I built a secure CI/CD pipeline for a MERN app on GKE. It validates code, builds SHA-tagged images, pushes to Artifact Registry, and deploys to Kubernetes with rollout verification. Cloud authentication uses OIDC Workload Identity Federation, so no static cloud keys are stored. Ingress, static IP, DNS, and managed TLS provide stable production access, and observability is supported via Prometheus and Alertmanager.

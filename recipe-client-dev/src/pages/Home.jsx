@@ -167,6 +167,7 @@ function Home() {
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm">
               <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">GitHub Actions CI/CD</span>
               <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 font-medium">Docker Build and Push</span>
+              <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 font-medium">Happy Birthday Pritvi</span>
               <span className="px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 font-medium">Kubernetes on GKE</span>
               <span className="px-3 py-1 rounded-full bg-lime-100 text-lime-800 font-medium">OIDC Secure Deploy</span>
               <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-medium">Ingress and Autoscaling</span>

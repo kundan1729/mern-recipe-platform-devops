@@ -1,0 +1,349 @@
+VIVA DEVOPS Q&A GUIDE
+Project: mern-recipe-platform-devops
+Date: 15-Apr-2026
+
+============================================================
+SECTION 1: PROJECT OVERVIEW (SHORT VIVA INTRO)
+============================================================
+This project is a production-oriented MERN DevOps setup.
+Frontend and backend are containerized, built via GitHub Actions,
+pushed to Google Artifact Registry, and deployed to GKE.
+
+Main strengths:
+- CI/CD with validation + deployment automation
+- Secure cloud auth with OIDC (no static JSON key)
+- Kubernetes-based rollout, probes, autoscaling, ingress
+- Observability-ready setup with Prometheus/Alertmanager configs
+
+
+============================================================
+SECTION 2: CI/CD WORKFLOW (HOW IT WORKS)
+============================================================
+1) Trigger
+- push to main -> validate + deploy
+- pull_request to main -> validate only
+- manual run -> workflow_dispatch
+
+2) Validate Job
+- checkout repo + submodules
+- setup Node.js
+- frontend npm install + lint + typecheck
+- backend npm install
+
+3) Build and Deploy Job (skips for PR)
+- validate required GitHub variables
+- authenticate to GCP using OIDC + Workload Identity Federation
+- setup gcloud
+- configure Docker auth for Artifact Registry
+- build backend image and push
+- build frontend image and push
+- fetch GKE credentials
+- apply k8s manifests (namespace, configmap, service, deployment, hpa, ingress)
+- update deployment images via kubectl set image
+- wait for rollout status
+- print ingress endpoint
+
+4) Security in pipeline
+- uses id-token permission for OIDC token exchange
+- no long-lived GCP service-account key file in GitHub secrets
+- runtime app secrets are injected through Kubernetes Secret
+
+
+============================================================
+SECTION 3: WHAT WAS ADDED IN THIS DEVOPS SETUP
+============================================================
+- GitHub Actions CI/CD workflow for validation + deployment
+- OIDC/WIF based authentication to Google Cloud
+- Artifact Registry image push automation
+- Kubernetes deployment automation (GKE)
+- ConfigMap + Secret based runtime config handling
+- Ingress routing with managed certificate support
+- HPA manifest for autoscaling
+- Observability alert configs (email/slack reference)
+
+
+============================================================
+SECTION 4: GOOGLE CLOUD SERVICES USED (WITH PURPOSE)
+============================================================
+1) Google Kubernetes Engine (GKE)
+- Runs frontend and backend workloads as Kubernetes deployments.
+- Provides orchestration, rolling updates, service discovery.
+
+2) Artifact Registry (GAR)
+- Stores versioned Docker images for frontend/backend.
+- CI/CD pushes SHA-tagged images before deployment.
+
+3) IAM (Identity and Access Management)
+- Controls least-privilege access for deployment account.
+- Restricts what CI/CD can do in project/cluster/registry.
+
+4) Workload Identity Federation (OIDC)
+- Lets GitHub Actions authenticate to GCP without static key files.
+- Exchanges short-lived identity token for secure cloud access.
+
+5) GKE Ingress / Google Cloud Load Balancer (via ingress class gce)
+- Exposes app externally and routes:
+  /api -> backend service
+  /    -> frontend service
+
+6) Managed SSL Certificate (GKE Managed Certificate)
+- Automates HTTPS certificate provisioning/renewal.
+- Removes manual cert management effort.
+
+7) Global Static External IP (reserved IP for ingress)
+- Ingress is pinned to a named static IP resource.
+- Ensures stable public endpoint across updates/redeployments.
+
+8) DNS (domain mapping)
+- Domain hosts (itskundan.live, www.itskundan.live) point to static IP.
+- DNS A record maps domain -> reserved ingress external IP.
+
+Note on DNS provider:
+- DNS can be hosted in Cloud DNS or third-party registrar.
+- Requirement is: domain A records must target the reserved static IP.
+
+
+============================================================
+SECTION 5: RESERVED IP + DNS EXPLAINED (VIVA READY)
+============================================================
+Q: Why reserve a static IP for ingress?
+A: So app endpoint does not change after redeploy/recreate. Stable IP makes DNS reliable and avoids downtime due to IP churn.
+
+Q: How does DNS connect to Kubernetes ingress?
+A: DNS A record points domain to reserved external IP; ingress on that IP routes traffic by host/path rules to services.
+
+Q: Why use both root and www hostnames?
+A: Better user reachability and branding consistency. Both hosts can map to same ingress and certificate.
+
+Q: What if IP is not reserved?
+A: Load balancer IP may change, causing DNS mismatch and temporary outage until DNS is updated and propagated.
+
+
+============================================================
+SECTION 6: 30 DEVOPS INTERVIEW Q&A (2-3 LINES EACH)
+============================================================
+1. Q: What architecture did you deploy in this project?
+A: I deployed a containerized MERN setup with separate frontend and backend workloads on GKE. This supports independent scaling and safer releases.
+
+2. Q: Why separate frontend and backend services?
+A: It allows independent deployments, scaling, and fault isolation. One tier can be updated without forcing changes in the other.
+
+3. Q: What does CI do in your pipeline?
+A: CI validates code using lint/typecheck/dependency checks before deployment. It blocks bad changes early.
+
+4. Q: What does CD do in your pipeline?
+A: CD builds immutable images, pushes them to GAR, and deploys them to GKE automatically. This gives repeatable delivery.
+
+5. Q: Which events trigger your workflow?
+A: Push to main, PR to main, and manual workflow_dispatch. PR is validation-only by design.
+
+6. Q: Why avoid deployment on PR events?
+A: PR should validate quality, not mutate production-like environments. It reduces accidental release risk.
+
+7. Q: How are artifacts versioned?
+A: Images are tagged with commit SHA. It provides exact traceability from running pod to source commit.
+
+8. Q: Why Docker for this project?
+A: Docker ensures environment consistency across developer laptop, CI runner, and production cluster.
+
+9. Q: Why Kubernetes instead of plain VM deployment?
+A: Kubernetes provides self-healing, rolling updates, autoscaling, and service discovery out of the box.
+
+10. Q: Why choose GKE?
+A: GKE is managed Kubernetes, reducing control-plane maintenance while keeping Kubernetes-native workflows.
+
+11. Q: Where are images stored?
+A: Docker images are stored in Google Artifact Registry with region-specific repository endpoint.
+
+12. Q: How is deployment executed technically?
+A: Workflow applies manifests, updates deployment image tags, and waits for rollout status to confirm success.
+
+13. Q: Why check rollout status?
+A: It verifies new pods are healthy and available before pipeline success. This prevents silent failed releases.
+
+14. Q: What is namespace use in this project?
+A: Namespace isolates app resources logically and improves governance and access control.
+
+15. Q: How do you manage non-secret app config?
+A: Non-sensitive values are stored in ConfigMap so images remain environment-agnostic.
+
+16. Q: How do you manage secrets?
+A: Sensitive values are injected at runtime from Kubernetes Secret, not stored in code or image layers.
+
+17. Q: How does GitHub authenticate to GCP securely?
+A: Through OIDC + Workload Identity Federation with short-lived tokens.
+
+18. Q: Why is OIDC better than JSON key?
+A: No long-lived credentials to leak. Access is temporary and policy-bound.
+
+19. Q: What IAM principle did you follow?
+A: Least privilege. Only required roles are granted for registry push and cluster deployment.
+
+20. Q: How does external traffic routing work?
+A: Ingress routes /api to backend service and / to frontend service via host/path rules.
+
+21. Q: How do you manage HTTPS?
+A: Managed certificate integration is used so cert provisioning/renewal is automated.
+
+22. Q: Why liveness probe is important?
+A: It detects dead/stuck app process and auto-restarts container for faster recovery.
+
+23. Q: Why readiness probe is important?
+A: It ensures traffic reaches only healthy and ready pods during startup/rollout.
+
+24. Q: Why include HPA?
+A: HPA scales pods during load spikes and can reduce instances during low traffic.
+
+25. Q: Why keep docker-compose if using Kubernetes?
+A: Compose gives simple local full-stack run for developer productivity.
+
+26. Q: What observability capability is configured?
+A: Prometheus alert rules and Alertmanager notification config templates are included.
+
+27. Q: How are Slack alerts integrated?
+A: Alertmanager uses a Slack webhook secret to push critical alerts to channel.
+
+28. Q: What is your release safety approach?
+A: Validate first, deploy immutable images, and enforce rollout checks before completion.
+
+29. Q: First checks when deployment fails?
+A: GitHub workflow logs, kubectl rollout status, pod describe/events, then container logs.
+
+30. Q: What are next hardening improvements?
+A: Add image scanning gates, action pinning to SHAs, branch protections, and policy-as-code.
+
+
+============================================================
+SECTION 7: 10 PROMETHEUS Q&A
+============================================================
+1. Q: What is Prometheus?
+A: A pull-based monitoring system for collecting and storing time-series metrics.
+
+2. Q: What is scraping?
+A: Prometheus periodically pulls metrics from configured targets over HTTP.
+
+3. Q: What is a target?
+A: Any endpoint/service exposing metrics that Prometheus can scrape.
+
+4. Q: What are labels in metrics?
+A: Key-value dimensions like namespace/pod/instance for filtering and grouping.
+
+5. Q: Counter vs Gauge?
+A: Counter only increases; Gauge can increase/decrease.
+
+6. Q: What is ServiceMonitor?
+A: A Prometheus Operator CRD that defines how Kubernetes services are scraped.
+
+7. Q: What is Alertmanager?
+A: It receives alerts, groups/deduplicates them, then sends notifications.
+
+8. Q: Why grouping alerts is needed?
+A: Prevents alert storms and reduces noise during major incidents.
+
+9. Q: What is metric retention?
+A: Time duration for which Prometheus stores historical metric data.
+
+10. Q: Why monitor app and infra both?
+A: Infra metrics show platform health, app metrics show user-impact health.
+
+
+============================================================
+SECTION 8: 10 GRAFANA Q&A
+============================================================
+1. Q: What is Grafana?
+A: Visualization platform for metrics/logs/traces with dashboards and alerting.
+
+2. Q: What is a datasource?
+A: Backend source Grafana queries, e.g., Prometheus.
+
+3. Q: What is a dashboard?
+A: Collection of panels representing service/system health views.
+
+4. Q: What is a panel?
+A: Individual graph/table/stat component in a dashboard.
+
+5. Q: Why use dashboard variables?
+A: To reuse same dashboard for multiple namespaces/pods/environments.
+
+6. Q: Why annotations are useful?
+A: They overlay deploy/incident markers to correlate metric changes quickly.
+
+7. Q: Why combine Grafana with Prometheus?
+A: Prometheus stores metrics; Grafana gives intuitive visualization and analysis.
+
+8. Q: What is good dashboard design?
+A: Focus on actionable signals: traffic, errors, latency, saturation.
+
+9. Q: Why refresh interval matters?
+A: Very low interval can overload datasource; choose based on use case.
+
+10. Q: Why panels become blank sometimes?
+A: Usually wrong query/time range/labels or datasource connectivity issue.
+
+
+============================================================
+SECTION 9: 10 PROMQL Q&A (WITH SIMPLE QUERY EXAMPLES)
+============================================================
+1. Q: What is PromQL?
+A: Query language used to analyze Prometheus metrics for dashboards and alerts.
+
+2. Q: How to check target health quickly?
+A: Use: up
+
+3. Q: Why use rate() for counters?
+A: Counters are cumulative; rate gives per-second change.
+Example: rate(http_requests_total[5m])
+
+4. Q: rate() vs irate()?
+A: rate is smoother for alerts; irate is more instant/noisy for debugging.
+
+5. Q: How to total traffic across pods?
+A: sum(rate(http_requests_total[5m]))
+
+6. Q: How to aggregate by namespace?
+A: sum(rate(http_requests_total[5m])) by (namespace)
+
+7. Q: How to filter one namespace?
+A: up{namespace="mern-app"}
+
+8. Q: How to detect restarts in last 10m?
+A: increase(kube_pod_container_status_restarts_total[10m])
+
+9. Q: How to find pods not ready?
+A: kube_pod_status_ready{namespace="mern-app", condition="true"} == 0
+
+10. Q: How to compute p95 latency?
+A: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+
+
+============================================================
+SECTION 10: SHORT SECURITY + IAM + WEBHOOK VIVA Q&A
+============================================================
+Q: Is this using IAM user credentials in GitHub?
+A: No. It uses service-account impersonation through OIDC/WIF, avoiding static IAM user keys.
+
+Q: What is the key security gain from OIDC?
+A: No long-lived cloud key in repository secrets; only short-lived federated credentials are used.
+
+Q: Where are app secrets stored?
+A: Kubernetes Secret (runtime) and GitHub variables/secrets for pipeline settings.
+
+Q: Which webhook concepts exist in this project?
+A: GitHub webhook events trigger CI/CD; Slack webhook receives alert notifications from Alertmanager.
+
+Q: What should be improved further?
+A: Add secret rotation process, image vulnerability gate, stricter OIDC claim conditions, and action pinning.
+
+
+============================================================
+SECTION 11: 60-SECOND PROJECT SUMMARY (FINAL ANSWER IN VIVA)
+============================================================
+I implemented a secure CI/CD pipeline for a MERN app on GKE using GitHub Actions.
+Pipeline validates code, builds SHA-tagged Docker images, pushes to Artifact Registry,
+and deploys to Kubernetes with rollout verification. Authentication is done through
+OIDC Workload Identity Federation, so no static GCP key is stored. Ingress uses
+reserved static IP + DNS mapping and managed certificate for stable HTTPS exposure.
+Monitoring is supported through Prometheus/Alertmanager configs with Slack/email alerts.
+
+
+END OF DOCUMENT
